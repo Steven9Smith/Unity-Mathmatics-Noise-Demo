@@ -9,32 +9,27 @@ using System.IO;
 
 public class NoiseComponent : MonoBehaviour
 {
-
-	[Tooltip("Noise Type to test")]
+	// Noise type
 	public NoiseClass.NoiseType NoiseType = NoiseClass.NoiseType.CellularNoise;
+	// used to determine dimension of the current noise type
 	public bool Is2D = true, Is3D = false, Is4D = false;
 
-	public float Scale = 10f;
-
-
-
+	// this is currently unused
 	public string FileName = "";
 
-	public Vector2 MinMaxValue;
-
+	// scale
+	public float Scale = 10f;
 	public bool UseScaleAsMax = true;
+
+	// Values that hold Gradients and Rotation Values
+	public Vector2 MinMaxValue;
 
 	public float ValueA;
 	public float ValueB;
 	public float ValueC;
 	public float ValueD;
 
-	private float4 oldValues;
-	private float4 oldSize;
-	private float oldScale;
-	private NoiseClass.NoiseType OldNoiseType;
-
-	private MeshRenderer mr;
+	// Holds the Min and Max Demensions of the texture or Interpertation Method
 
 	public Vector2Int MinMaxWidth = new Vector2Int(1,64);
 	public Vector2Int MinMaxHeight = new Vector2Int(1,64);
@@ -42,7 +37,21 @@ public class NoiseComponent : MonoBehaviour
 	public Vector2Int MinMaxLength = new Vector2Int(1, 64);
 	// This is used for 4D noise. Depth is not its true name, its just a placeholder name
 	public Vector2Int MinMaxDepth = new Vector2Int(1, 64);
+
 	public int width = 64, height = 64,length = 1,depth = 1;
+
+	// Value Interpertation
+	public ValueInterpertation ValueInterpertation;
+
+	// holds the values of previous values
+
+	private float4 oldValues;
+	private float4 oldSize;
+	private float oldScale;
+	private NoiseClass.NoiseType OldNoiseType;
+	private ValueInterpertation oldValueInterpertation;
+
+	private MeshRenderer mr;
 
 	// Start is called before the first frame update
 	void Start()
@@ -60,11 +69,12 @@ public class NoiseComponent : MonoBehaviour
 		if (ValuesChange())
 		{
 
-			mr.material.mainTexture = NoiseClass.GenerateTexture(NoiseType, width, height,length,depth, Scale, new float4(ValueA, ValueB, ValueC, ValueD),Is2D ? 2 : Is3D ? 3 : Is4D ? 4 : 0);
+			mr.material.mainTexture = NoiseClass.GenerateTexture(NoiseType,new int4(MinMaxWidth.x,MinMaxHeight.x,MinMaxLength.x,MinMaxDepth.x),new int4(width, height,length,depth),ValueInterpertation, Scale, new float4(ValueA, ValueB, ValueC, ValueD),Is2D ? 2 : Is3D ? 3 : Is4D ? 4 : 0);
 			oldValues = new float4(ValueA, ValueB, ValueC, ValueD);
 			oldScale = Scale;
 			OldNoiseType = NoiseType;
 			oldSize = new float4(width, height,length,depth);
+			oldValueInterpertation = ValueInterpertation;
 		}
 	}
 
@@ -79,6 +89,8 @@ public class NoiseComponent : MonoBehaviour
 			&& Scale == oldScale
 			// Test for size changes
 			&& oldSize.x == width && oldSize.y == height && oldSize.z == length && oldSize.w == depth
+			// test Value Interpertation
+			&& ValueInterpertation.Equals(oldValueInterpertation)
 		);
 	}
 
@@ -89,10 +101,28 @@ public class NoiseEditor : Editor
 
 	public NoiseComponent nc;
 
+	private bool MaterialAttributesFoldout = true;
+	private bool GradientsAndRotationValuesFoldout = true;
+
+	private bool ValueInterpertation = true;
+
+	private bool ValueInterpertation2DX = true;
+	private bool ValueInterpertation2DY = true;
+
+
+	private bool ValueInterpertation3DX = true;
+	private bool ValueInterpertation3DY = true;
+	private bool ValueInterpertation3DZ = true;
+
+	private int ValueInterpertationDimension = 1;
+
+
+	private bool3 xyz1D;
+
 	public override void OnInspectorGUI()
 	{
 		//	DrawDefaultInspector();
-		DrawHeader();
+	//	DrawHeader();
 		nc = target as NoiseComponent;
 		// Noise Type
 		EditorGUILayout.LabelField("Noise Type", EditorStyles.boldLabel);
@@ -102,40 +132,184 @@ public class NoiseEditor : Editor
 		nc.Is2D = NoiseClass.TypeIs2D(nc.NoiseType);
 		if (!nc.Is2D)
 			nc.Is3D = NoiseClass.TypeIs3D(nc.NoiseType);
+		else
+			nc.Is3D = false;
 		if (!nc.Is3D)
 			nc.Is4D = NoiseClass.TypeIs4D(nc.NoiseType);
+		else
+			nc.Is4D = false;
+		EditorGUILayout.Space();
+		ValueInterpertation = EditorGUILayout.Foldout(ValueInterpertation, "Value Interpitation",EditorStyles.boldFont);
+		if (ValueInterpertation)
+		{
+			ValueInterpertationDimension = nc.ValueInterpertation.ReturnDimension(nc.NoiseType);	
+			// Value Handling
+			if (ValueInterpertationDimension == 1)
+			{
+				EditorGUILayout.LabelField("1D Noise Value Return Interpertation", EditorStyles.boldLabel);
+				nc.ValueInterpertation.ColorInterpertation1D.x = EditorGUILayout.Toggle("X", nc.ValueInterpertation.ColorInterpertation1D.x);
+				nc.ValueInterpertation.ColorInterpertation1D.y = EditorGUILayout.Toggle("Y", nc.ValueInterpertation.ColorInterpertation1D.y);
+				nc.ValueInterpertation.ColorInterpertation1D.z = EditorGUILayout.Toggle("Z", nc.ValueInterpertation.ColorInterpertation1D.z);
+			}
+			else if( ValueInterpertationDimension == 2)
+			{
+				EditorGUILayout.LabelField("2D Noise Value Return Interpertation", EditorStyles.boldLabel);
+				// Handle the Noise Return 2D X options
+				ValueInterpertation2DX = EditorGUILayout.Foldout(ValueInterpertation2DX, "Noise Return X Options");
+				if (ValueInterpertation2DX)
+				{
+					// Get the values
+					nc.ValueInterpertation.ColorInterpertationA2D.x = EditorGUILayout.Toggle("X", nc.ValueInterpertation.ColorInterpertationA2D.x);
+					nc.ValueInterpertation.ColorInterpertationA2D.y = EditorGUILayout.Toggle("Y", nc.ValueInterpertation.ColorInterpertationA2D.y);
+					nc.ValueInterpertation.ColorInterpertationA2D.z = EditorGUILayout.Toggle("Z", nc.ValueInterpertation.ColorInterpertationA2D.z);
+					// verify there is no conflicts between A2D and B2D
+					if (nc.ValueInterpertation.ColorInterpertationA2D.x && nc.ValueInterpertation.ColorInterpertationB2D.x)
+						nc.ValueInterpertation.ColorInterpertationB2D.x = false;
+					if (nc.ValueInterpertation.ColorInterpertationA2D.y && nc.ValueInterpertation.ColorInterpertationB2D.y)
+						nc.ValueInterpertation.ColorInterpertationB2D.y = false;
+					if (nc.ValueInterpertation.ColorInterpertationA2D.z && nc.ValueInterpertation.ColorInterpertationB2D.z)
+						nc.ValueInterpertation.ColorInterpertationB2D.z = false;
+				}
+				
+				// Handle the Noise Return 2D Y options
+				ValueInterpertation2DY = EditorGUILayout.Foldout(ValueInterpertation2DY, "Noise Return Y Options");
+				if (ValueInterpertation2DY)
+				{
+					// Get the values
+					nc.ValueInterpertation.ColorInterpertationB2D.x = EditorGUILayout.Toggle("X", nc.ValueInterpertation.ColorInterpertationB2D.x);
+					nc.ValueInterpertation.ColorInterpertationB2D.y = EditorGUILayout.Toggle("Y", nc.ValueInterpertation.ColorInterpertationB2D.y);
+					nc.ValueInterpertation.ColorInterpertationB2D.z = EditorGUILayout.Toggle("Z", nc.ValueInterpertation.ColorInterpertationB2D.z);
+				
+				// verify there is no conflicts between A2D and B2D
+				if (nc.ValueInterpertation.ColorInterpertationA2D.x && nc.ValueInterpertation.ColorInterpertationB2D.x)
+					nc.ValueInterpertation.ColorInterpertationA2D.x = false;
+				if (nc.ValueInterpertation.ColorInterpertationA2D.y && nc.ValueInterpertation.ColorInterpertationB2D.y)
+					nc.ValueInterpertation.ColorInterpertationA2D.y = false;
+				if (nc.ValueInterpertation.ColorInterpertationA2D.z && nc.ValueInterpertation.ColorInterpertationB2D.z)
+					nc.ValueInterpertation.ColorInterpertationA2D.z = false;
+				}
+			}
+			else if (ValueInterpertationDimension == 3)
+			{
+				EditorGUILayout.LabelField("3D Noise Value Return Interpertation", EditorStyles.boldLabel);
+				// Handle the Noise Return 3D X options
+				ValueInterpertation3DX = EditorGUILayout.Foldout(ValueInterpertation3DX, "Noise Return X Options");
+				if (ValueInterpertation3DX)
+				{
+					// Get the values
+					nc.ValueInterpertation.ColorInterpertationA3D.x = EditorGUILayout.Toggle("X", nc.ValueInterpertation.ColorInterpertationA3D.x);
+					nc.ValueInterpertation.ColorInterpertationA3D.y = EditorGUILayout.Toggle("Y", nc.ValueInterpertation.ColorInterpertationA3D.y);
+					nc.ValueInterpertation.ColorInterpertationA3D.z = EditorGUILayout.Toggle("Z", nc.ValueInterpertation.ColorInterpertationA3D.z);
+					// verify there is no conflicts between A3D and B3D and C3D
+					if (nc.ValueInterpertation.ColorInterpertationA3D.x && nc.ValueInterpertation.ColorInterpertationB3D.x)
+						nc.ValueInterpertation.ColorInterpertationB3D.x = false;
+					if (nc.ValueInterpertation.ColorInterpertationA3D.y && nc.ValueInterpertation.ColorInterpertationB3D.y)
+						nc.ValueInterpertation.ColorInterpertationB3D.y = false;
+					if (nc.ValueInterpertation.ColorInterpertationA3D.z && nc.ValueInterpertation.ColorInterpertationB3D.z)
+						nc.ValueInterpertation.ColorInterpertationB3D.z = false;
+					if (nc.ValueInterpertation.ColorInterpertationA3D.x && nc.ValueInterpertation.ColorInterpertationC3D.x)
+						nc.ValueInterpertation.ColorInterpertationC3D.x = false;
+					if (nc.ValueInterpertation.ColorInterpertationA3D.y && nc.ValueInterpertation.ColorInterpertationC3D.y)
+						nc.ValueInterpertation.ColorInterpertationC3D.y = false;
+					if (nc.ValueInterpertation.ColorInterpertationA3D.z && nc.ValueInterpertation.ColorInterpertationC3D.z)
+						nc.ValueInterpertation.ColorInterpertationC3D.z = false;
+				}
+
+				// Handle the Noise Return 3D Y options
+				ValueInterpertation3DY = EditorGUILayout.Foldout(ValueInterpertation3DY, "Noise Return Y Options");
+				if (ValueInterpertation3DY)
+				{
+					// Get the values
+					nc.ValueInterpertation.ColorInterpertationB3D.x = EditorGUILayout.Toggle("X", nc.ValueInterpertation.ColorInterpertationB3D.x);
+					nc.ValueInterpertation.ColorInterpertationB3D.y = EditorGUILayout.Toggle("Y", nc.ValueInterpertation.ColorInterpertationB3D.y);
+					nc.ValueInterpertation.ColorInterpertationB3D.z = EditorGUILayout.Toggle("Z", nc.ValueInterpertation.ColorInterpertationB3D.z);
+					// verify there is no conflicts between A3D and B3D and C3D
+					if (nc.ValueInterpertation.ColorInterpertationA3D.x && nc.ValueInterpertation.ColorInterpertationB3D.x)
+						nc.ValueInterpertation.ColorInterpertationA3D.x = false;
+					if (nc.ValueInterpertation.ColorInterpertationA3D.y && nc.ValueInterpertation.ColorInterpertationB3D.y)
+						nc.ValueInterpertation.ColorInterpertationA3D.y = false;
+					if (nc.ValueInterpertation.ColorInterpertationA3D.z && nc.ValueInterpertation.ColorInterpertationB3D.z)
+						nc.ValueInterpertation.ColorInterpertationA3D.z = false;
+					if (nc.ValueInterpertation.ColorInterpertationB3D.x && nc.ValueInterpertation.ColorInterpertationC3D.x)
+						nc.ValueInterpertation.ColorInterpertationC3D.x = false;
+					if (nc.ValueInterpertation.ColorInterpertationB3D.y && nc.ValueInterpertation.ColorInterpertationC3D.y)
+						nc.ValueInterpertation.ColorInterpertationC3D.y = false;
+					if (nc.ValueInterpertation.ColorInterpertationB3D.z && nc.ValueInterpertation.ColorInterpertationC3D.z)
+						nc.ValueInterpertation.ColorInterpertationC3D.z = false;
+				}
+
+				// Handle the Noise Return 3D Z options
+				ValueInterpertation3DZ = EditorGUILayout.Foldout(ValueInterpertation3DZ, "Noise Return Z Options");
+				if (ValueInterpertation3DZ)
+				{
+					// Get the values
+					nc.ValueInterpertation.ColorInterpertationC3D.x = EditorGUILayout.Toggle("X", nc.ValueInterpertation.ColorInterpertationC3D.x);
+					nc.ValueInterpertation.ColorInterpertationC3D.y = EditorGUILayout.Toggle("Y", nc.ValueInterpertation.ColorInterpertationC3D.y);
+					nc.ValueInterpertation.ColorInterpertationC3D.z = EditorGUILayout.Toggle("Z", nc.ValueInterpertation.ColorInterpertationC3D.z);
+					// verify there is no conflicts between A3D and B3D and C3D
+					if (nc.ValueInterpertation.ColorInterpertationA3D.x && nc.ValueInterpertation.ColorInterpertationC3D.x)
+						nc.ValueInterpertation.ColorInterpertationA3D.x = false;
+					if (nc.ValueInterpertation.ColorInterpertationA3D.y && nc.ValueInterpertation.ColorInterpertationC3D.y)
+						nc.ValueInterpertation.ColorInterpertationA3D.y = false;
+					if (nc.ValueInterpertation.ColorInterpertationA3D.z && nc.ValueInterpertation.ColorInterpertationC3D.z)
+						nc.ValueInterpertation.ColorInterpertationA3D.z = false;
+					if (nc.ValueInterpertation.ColorInterpertationB3D.x && nc.ValueInterpertation.ColorInterpertationC3D.x)
+						nc.ValueInterpertation.ColorInterpertationB3D.x = false;
+					if (nc.ValueInterpertation.ColorInterpertationB3D.y && nc.ValueInterpertation.ColorInterpertationC3D.y)
+						nc.ValueInterpertation.ColorInterpertationB3D.y = false;
+					if (nc.ValueInterpertation.ColorInterpertationB3D.z && nc.ValueInterpertation.ColorInterpertationC3D.z)
+						nc.ValueInterpertation.ColorInterpertationB3D.z = false;
+				}
+			}
+			else Debug.LogError("Detected Unknown dimension!");
+		}
 
 		// Material Attributes
-		EditorGUILayout.LabelField("Material Attribute", EditorStyles.boldLabel);
-		//		Scale
-		nc.UseScaleAsMax = EditorGUILayout.Toggle("Use Scale As Size Limit",nc.UseScaleAsMax);
-		nc.Scale = EditorGUILayout.FloatField("Scale", nc.Scale);
-		//		Width
-		nc.MinMaxWidth = EditorGUILayout.Vector2IntField("Min Max Width", nc.MinMaxWidth);
-		if (nc.MinMaxWidth.x > nc.MinMaxWidth.y)
-			nc.MinMaxWidth.x = nc.MinMaxWidth.y - 1;
-		//		Height
-		nc.MinMaxHeight = EditorGUILayout.Vector2IntField("Min Max Height", nc.MinMaxHeight);
-		if (nc.MinMaxHeight.x > nc.MinMaxHeight.y)
-			nc.MinMaxHeight.x = nc.MinMaxHeight.y - 1;
-		//		Length
-		if(nc.Is3D || nc.Is4D)
+		EditorGUILayout.Space();
+		MaterialAttributesFoldout = EditorGUILayout.Foldout(MaterialAttributesFoldout, "Material Attributes");
+		if (MaterialAttributesFoldout)
 		{
-			nc.MinMaxLength = EditorGUILayout.Vector2IntField("Min Max Length", nc.MinMaxLength);
-			if (nc.MinMaxLength.x > nc.MinMaxLength.y)
-				nc.MinMaxLength.x = nc.MinMaxLength.y - 1;
-		}
-		//		Depth
-		if (nc.Is4D)
-		{
-			nc.MinMaxDepth = EditorGUILayout.Vector2IntField("Min Max Depth", nc.MinMaxDepth);
-			if (nc.MinMaxDepth.x > nc.MinMaxDepth.y)
-				nc.MinMaxDepth.x = nc.MinMaxDepth.y - 1;
-		}
-		// create the size sliiders
-		nc.width = EditorGUILayout.IntSlider("Width", nc.width,nc.MinMaxWidth.x,nc.MinMaxWidth.y);
-		nc.height = EditorGUILayout.IntSlider("Height", nc.height, nc.MinMaxHeight.x, nc.MinMaxHeight.y);
+			// Material Attributes
 		
+			//		Scale
+			nc.UseScaleAsMax = EditorGUILayout.Toggle("Use Scale As Size Limit", nc.UseScaleAsMax);
+			nc.Scale = EditorGUILayout.FloatField("Scale", nc.Scale);
+			//		Width
+			nc.MinMaxWidth = EditorGUILayout.Vector2IntField("Min Max Width", nc.MinMaxWidth);
+			if (nc.MinMaxWidth.x > nc.MinMaxWidth.y)
+				nc.MinMaxWidth.x = nc.MinMaxWidth.y - 1;
+			//		Height
+			nc.MinMaxHeight = EditorGUILayout.Vector2IntField("Min Max Height", nc.MinMaxHeight);
+			if (nc.MinMaxHeight.x > nc.MinMaxHeight.y)
+				nc.MinMaxHeight.x = nc.MinMaxHeight.y - 1;
+			
+			//		Length
+			if (nc.Is3D || nc.Is4D)
+			{
+				nc.MinMaxLength = EditorGUILayout.Vector2IntField("Min Max Length", nc.MinMaxLength);
+				if (nc.MinMaxLength.x > nc.MinMaxLength.y)
+					nc.MinMaxLength.x = nc.MinMaxLength.y - 1;
+			}
+			//		Depth
+			if (nc.Is4D)
+			{
+				nc.MinMaxDepth = EditorGUILayout.Vector2IntField("Min Max Depth", nc.MinMaxDepth);
+				if (nc.MinMaxDepth.x > nc.MinMaxDepth.y)
+					nc.MinMaxDepth.x = nc.MinMaxDepth.y - 1;
+			}
+			// create the size sliiders
+			nc.width = EditorGUILayout.IntSlider("Width", nc.width, nc.MinMaxWidth.x, nc.MinMaxWidth.y);
+			nc.height = EditorGUILayout.IntSlider("Height", nc.height, nc.MinMaxHeight.x, nc.MinMaxHeight.y);
+			if(nc.Is3D || nc.Is4D)
+				nc.length = EditorGUILayout.IntSlider("Length", nc.length, nc.MinMaxLength.x, nc.MinMaxLength.y);
+			if (nc.Is4D)
+				nc.depth = EditorGUILayout.IntSlider("Depth", nc.depth, nc.MinMaxDepth.x, nc.MinMaxDepth.y);
+			
+		}
+
+		EditorGUILayout.Space();
+
+
 
 		EditorGUILayout.LabelField("Gradients and Rotation Values", EditorStyles.boldLabel);
 		//Update MinMaxValue is UseScaleAsMax is true
@@ -159,7 +333,12 @@ public class NoiseEditor : Editor
 				break;
 			// these are currently not programmed
 			case NoiseClass.NoiseType.PerlinNoise3x3x3:
+				DisplaySliders(new string[] { "Period X","Period Y","Period Z"});
+				break;
 			case NoiseClass.NoiseType.PerlinNoise4x4x4x4:
+
+				DisplaySliders(new string[] { "Period X", "Period Y", "Period Z", "Period W"});
+				break;
 			case NoiseClass.NoiseType.CellularNoise2x2x2:
 			case NoiseClass.NoiseType.CellularNoise3x3x3:
 			case NoiseClass.NoiseType.ClassicPerlinNoise3x3x3:
@@ -201,6 +380,34 @@ public class NoiseEditor : Editor
 
 public static class NoiseClass
 {
+	/*
+	 Picking the gradients
+	 
+		For the noise function to be repeatable, i.e. always yield the same value for a given 
+		input point, gradients need to be pseudo-random, not truly random. They need to have 
+		enough variation to conceal the fact that the function is not truly random, but too 
+		much variation will cause unpre-dictable behaviour for the noise function. A good 
+		choice for 2D and higher is to pick gradients of unit length but different directions.
+		For 2D, 8 or 16 gradients distributed around the unit circle is a good choice. For 3D,
+		Ken Perlin’s recommended set of gradients is the midpoints of each of the 12 edges of
+		a cube centered on the origin.
+		 
+	*/
+
+
+	private static float3[] gradient3D = new float3[]{new float3(1,1,0),new float3(-1,1,0),new float3(1,-1,0),new float3(-1,-1,0),
+								 new float3(1,0,1),new float3(-1,0,1),new float3(1,0,-1),new float3(-1,0,-1),
+								 new float3(0,1,1),new float3(0,-1,1),new float3(0,1,-1),new float3(0,-1,-1) };
+
+	private static float4[] gradient4D = new float4[]{new float4(0, 1, 1, 1), new float4(0, 1, 1, -1), new float4(0, 1, -1, 1), new float4(0, 1, -1, -1),
+				   new float4(0, -1, 1, 1), new float4(0, -1, 1, -1), new float4(0, -1, -1, 1), new float4(0, -1, -1, -1),
+				   new float4(1, 0, 1, 1), new float4(1, 0, 1, -1), new float4(1, 0, -1, 1), new float4(1, 0, -1, -1),
+				   new float4(-1, 0, 1, 1), new float4(-1, 0, 1, -1), new float4(-1, 0, -1, 1), new float4(-1, 0, -1, -1),
+				   new float4(1, 1, 0, 1), new float4(1, 1, 0, -1), new float4(1, -1, 0, 1), new float4(1, -1, 0, -1),
+				   new float4(-1, 1, 0, 1), new float4(-1, 1, 0, -1), new float4(-1, -1, 0, 1), new float4(-1, -1, 0, -1),
+				   new float4(1, 1, 1, 0), new float4(1, 1, -1, 0), new float4(1, -1, 1, 0), new float4(1, -1, -1, 0),
+				   new float4(-1, 1, 1, 0), new float4(-1, 1, -1, 0), new float4(-1, -1, 1, 0), new float4(-1, -1, -1, 0)};
+
 	public enum NoiseType
 	{
 		// Cellular noise, returning F1 and F2 in a float2.
@@ -257,7 +464,8 @@ public static class NoiseClass
 		SRNoise,
 		SRDNoise,
 		SRDNoise2D,
-		SRNoise2D
+		SRNoise2D,
+		SimplexNoise3x3x3Gradient
 
 	}
 
@@ -297,6 +505,8 @@ public static class NoiseClass
 				return "SRNoise";
 			case NoiseType.SRNoise2D:
 				return "SRNoise2D";
+			case NoiseType.SimplexNoise3x3x3Gradient:
+				return "SimplexNoise3x3x3Gradient";
 			default:
 				return "UNKNOWN_TYPE";
 		}
@@ -433,15 +643,15 @@ public static class NoiseClass
 	{
 		switch (type)
 		{
-			case NoiseClass.NoiseType.PerlinNoise:
-			case NoiseClass.NoiseType.SRNoise2D:
-			case NoiseClass.NoiseType.SRNoise:
-			case NoiseClass.NoiseType.SRDNoise2D:
+			case NoiseType.PerlinNoise:
+			case NoiseType.SRNoise2D:
+			case NoiseType.SRNoise:
+			case NoiseType.SRDNoise2D:
 			case NoiseType.SRDNoise:
-			case NoiseClass.NoiseType.ClassicPerlinNoise:
-			case NoiseClass.NoiseType.SimplexNoise:
-			case NoiseClass.NoiseType.CellularNoise2x2:
-			case NoiseClass.NoiseType.CellularNoise:
+			case NoiseType.ClassicPerlinNoise:
+			case NoiseType.SimplexNoise:
+			case NoiseType.CellularNoise2x2:
+			case NoiseType.CellularNoise:
 				return true;
 			default:
 				return false;
@@ -457,6 +667,7 @@ public static class NoiseClass
 			case NoiseClass.NoiseType.SimplexNoise3x3x3:
 			case NoiseClass.NoiseType.CellularNoise2x2x2:
 			case NoiseClass.NoiseType.CellularNoise3x3x3:
+			case NoiseType.SimplexNoise3x3x3Gradient:
 				return true;
 			default:
 				return false;
@@ -495,19 +706,19 @@ public static class NoiseClass
 	/// </param>
 	/// <returns></returns>
 
-	public static Texture2D GenerateTexture(NoiseType type, int width, int height,int length,int depth, float Scale, float4 input,int dimension = 2)
+	public static Texture2D GenerateTexture(NoiseType type,int4 minDimensions, int4 dimensions,ValueInterpertation valueInterpertation, float Scale, float4 input,int dimension = 2)
 	{
-		Texture2D texture = new Texture2D(width, height);
+		Texture2D texture = new Texture2D(dimensions.x, dimensions.y);
 		float x, y, z, w, value;
 		float2 value2;
 		float3 value3;
 		Color color = new Color();
-		for (int i = 0; i < width; i++)
+		for (int i = minDimensions.x; i < dimensions.x; i++)
 		{
-			x = (float)i / width * Scale;
-			for (int j = 0; j < height; j++)
+			x = (float)i / dimensions.x * Scale;
+			for (int j = minDimensions.y; j < dimensions.y; j++)
 			{
-				y = (float)j / height * Scale;
+				y = (float)j / dimensions.y * Scale;
 				if (dimension == 2)
 				{
 					switch (type)
@@ -517,7 +728,7 @@ public static class NoiseClass
 								// Classic Perlin noise, periodic variant
 								value = noise.pnoise(new float2(x, y), new float2(input.x, input.y));
 
-								color = new Color(value, value, value);
+								color = new Color(valueInterpertation.ColorInterpertation1D.x ? value : 0, valueInterpertation.ColorInterpertation1D.y ? value : 0, valueInterpertation.ColorInterpertation1D.z ? value : 0);
 								break;
 							}
 
@@ -526,13 +737,13 @@ public static class NoiseClass
 								// 2-D non-tiling simplex noise with rotating gradients,
 								// without the analytical derivative.
 								value = noise.srnoise(new float2(x, y), input.x);
-								color = new Color(value, value, value);
+								color = new Color(valueInterpertation.ColorInterpertation1D.x ? value : 0, valueInterpertation.ColorInterpertation1D.y ? value : 0, valueInterpertation.ColorInterpertation1D.z ? value : 0);
 								break;
 							}
 						case NoiseClass.NoiseType.SRNoise:
 							{
 								value = noise.srnoise(new float2(x, y));
-								color = new Color(value, value, value);
+								color = new Color(valueInterpertation.ColorInterpertation1D.x ? value : 0, valueInterpertation.ColorInterpertation1D.y ? value : 0, valueInterpertation.ColorInterpertation1D.z ? value : 0);
 								break;
 							}
 						case NoiseClass.NoiseType.SRDNoise2D:
@@ -545,7 +756,16 @@ public static class NoiseClass
 
 								//color = new Color(value3.x, value3.x, value3.x);
 								//  i like the way the derivatives work so i'll keep it like this for now
-								color = new Color(value3.x, value3.y, value3.z);
+								//	color = new Color(value3.x, value3.y, value3.z);
+
+								// new color system based on the value interperter
+								color = new Color(
+									valueInterpertation.ColorInterpertationA3D.x ? value3.x : valueInterpertation.ColorInterpertationB3D.x ? value3.y : valueInterpertation.ColorInterpertationC3D.x ? value3.z : 0,
+									valueInterpertation.ColorInterpertationA3D.y ? value3.x : valueInterpertation.ColorInterpertationB3D.y ? value3.y : valueInterpertation.ColorInterpertationC3D.y ? value3.z : 0,
+									valueInterpertation.ColorInterpertationA3D.z ? value3.x : valueInterpertation.ColorInterpertationB3D.z ? value3.y : valueInterpertation.ColorInterpertationC3D.z ? value3.z : 0
+								);
+
+
 								break;
 							}
 						case NoiseType.SRDNoise:
@@ -557,93 +777,166 @@ public static class NoiseClass
 
 								//color = new Color(value3.x, value3.x, value3.x);
 								//  i like the way the derivatives work so i'll keep it like this for now
-								color = new Color(value3.x, value3.y, value3.z);
+								//	color = new Color(value3.x, value3.y, value3.z);
+								color = new Color(
+										valueInterpertation.ColorInterpertationA3D.x ? value3.x : valueInterpertation.ColorInterpertationB3D.x ? value3.y : valueInterpertation.ColorInterpertationC3D.x ? value3.z : 0,
+										valueInterpertation.ColorInterpertationA3D.y ? value3.x : valueInterpertation.ColorInterpertationB3D.y ? value3.y : valueInterpertation.ColorInterpertationC3D.y ? value3.z : 0,
+										valueInterpertation.ColorInterpertationA3D.z ? value3.x : valueInterpertation.ColorInterpertationB3D.z ? value3.y : valueInterpertation.ColorInterpertationC3D.z ? value3.z : 0
+									);
+
 								break;
 							}
 						case NoiseClass.NoiseType.ClassicPerlinNoise:
 							{
 								value = noise.cnoise(new float2(x, y));
-								color = new Color(value, value, value);
+								color = new Color(valueInterpertation.ColorInterpertation1D.x ? value : 0, valueInterpertation.ColorInterpertation1D.y ? value : 0, valueInterpertation.ColorInterpertation1D.z ? value : 0);
 								break;
 							}
 						case NoiseClass.NoiseType.SimplexNoise:
 							{
 								value = noise.snoise(new float2(x, y));
-								color = new Color(value, value, value);
+								color = new Color(valueInterpertation.ColorInterpertation1D.x ? value : 0, valueInterpertation.ColorInterpertation1D.y ? value : 0, valueInterpertation.ColorInterpertation1D.z ? value : 0);
 								break;
 							}
 						case NoiseClass.NoiseType.CellularNoise2x2:
 							{
 								value2 = noise.cellular2x2(new float2(x, y));
-								color = new Color(value2.x, value2.x, value2.x);
+							//	color = new Color(value2.x, value2.x, value2.x);
+
+								color = new Color(
+									valueInterpertation.ColorInterpertationA2D.x ? value2.x : valueInterpertation.ColorInterpertationB2D.x ? value2.y : 0,
+									valueInterpertation.ColorInterpertationA2D.y ? value2.x : valueInterpertation.ColorInterpertationB2D.y ? value2.y : 0,
+									valueInterpertation.ColorInterpertationA2D.z ? value2.x : valueInterpertation.ColorInterpertationB2D.z ? value2.y : 0
+								);
 								break;
 							}
 						case NoiseClass.NoiseType.CellularNoise:
 							{
 								value2 = noise.cellular(new float2(x, y));
-								color = new Color(value2.x, value2.x, value2.x);
+								//	color = new Color(value2.x, value2.x, value2.x);
+
+								color = new Color(
+									valueInterpertation.ColorInterpertationA2D.x ? value2.x : valueInterpertation.ColorInterpertationB2D.x ? value2.y : 0,
+									valueInterpertation.ColorInterpertationA2D.y ? value2.x : valueInterpertation.ColorInterpertationB2D.y ? value2.y : 0,
+									valueInterpertation.ColorInterpertationA2D.z ? value2.x : valueInterpertation.ColorInterpertationB2D.z ? value2.y : 0
+								);
 								break;
 							}
+
+
 					}
 				}
 				else if (dimension == 3)
 				{
-					switch (type)
+					for (int k = minDimensions.z; k < dimensions.z; k++)
 					{
-						case NoiseClass.NoiseType.PerlinNoise3x3x3:
-							{
-								//	Debug.LogWarning("This Scene doesnto currently support 3D inputs because idk what they are");
-								for (int k = 0; k < width; k++)
+						z = (float)k / dimensions.z * Scale;
+						switch (type)
+						{
+							case NoiseClass.NoiseType.PerlinNoise3x3x3:
 								{
-									x = (float)i / width * Scale;
-									y = (float)j / height * Scale;
-									z = (float)k / width * Scale;
-
+									// Classic Perlin noise, periodic variant
 									value = noise.pnoise(new float3(x, y, z), new float3(input.x, input.y, input.z));
 
-									color = new Color(value, value, value);
+									color = new Color(valueInterpertation.ColorInterpertation1D.x ? value : 0, valueInterpertation.ColorInterpertation1D.y ? value : 0, valueInterpertation.ColorInterpertation1D.z ? value : 0);
 
-									texture.SetPixel(i, j, color);
+									break;
 								}
-								break;
-							}
-						case NoiseClass.NoiseType.ClassicPerlinNoise3x3x3:
-							Debug.LogWarning("This Scene doesnto currently support 3D inputs because idk what they are");
+							case NoiseClass.NoiseType.ClassicPerlinNoise3x3x3:
+								{
+									// Classic Perlin noise
+									value = noise.cnoise(new float3(x,y,z));
 
-							break;
-						case NoiseClass.NoiseType.SimplexNoise3x3x3:
-							{
-								Debug.LogWarning("This Scene doesnto currently support 3D inputs because idk what they are");
-								break;
-							}
-						case NoiseClass.NoiseType.CellularNoise2x2x2:
-							{
-								Debug.LogWarning("This Scene doesnto currently support 3D inputs because idk what they are");
-								break;
-							}
-						case NoiseClass.NoiseType.CellularNoise3x3x3:
-							{
-								Debug.LogWarning("This Scene doesnto currently support 3D inputs because idk what they are");
-								break;
-							}
+									color = new Color(valueInterpertation.ColorInterpertation1D.x ? value : 0, valueInterpertation.ColorInterpertation1D.y ? value : 0, valueInterpertation.ColorInterpertation1D.z ? value : 0);
+									break;
+								}
+							case NoiseClass.NoiseType.SimplexNoise3x3x3:
+								{
+									value = noise.snoise(new float3(x,y,z));
+
+									color = new Color(valueInterpertation.ColorInterpertation1D.x ? value : 0, valueInterpertation.ColorInterpertation1D.y ? value : 0, valueInterpertation.ColorInterpertation1D.z ? value : 0);
+									break;
+								}
+							case NoiseType.SimplexNoise3x3x3Gradient:
+								{
+									// idk what to do with the gradient
+									float3 gradient = new float3();
+									value = noise.snoise(new float3(x,y,z), out gradient);
+									color = new Color(valueInterpertation.ColorInterpertation1D.x ? value : 0, valueInterpertation.ColorInterpertation1D.y ? value : 0, valueInterpertation.ColorInterpertation1D.z ? value : 0);
+									break;
+								}
+							case NoiseClass.NoiseType.CellularNoise2x2x2:
+								{
+									// Cellular noise, returning F1 and F2 in a float2.
+									// Speeded up by umath.sing 2x2x2 search window instead of 3x3x3,
+									// at the expense of some pattern artifacts.
+									// F2 is often wrong and has sharp discontinuities.
+									// If you need a good F2, use the slower 3x3x3 version.
+									value2 = noise.cellular2x2x2(new float3(x,y,z));
+
+
+									//	color = new Color(value2.x, value2.x, value2.x);
+									color = new Color(
+										valueInterpertation.ColorInterpertationA2D.x ? value2.x : valueInterpertation.ColorInterpertationB2D.x ? value2.y : 0,
+										valueInterpertation.ColorInterpertationA2D.y ? value2.x : valueInterpertation.ColorInterpertationB2D.y ? value2.y : 0,
+										valueInterpertation.ColorInterpertationA2D.z ? value2.x : valueInterpertation.ColorInterpertationB2D.z ? value2.y : 0
+									);
+									break;
+								}
+							case NoiseClass.NoiseType.CellularNoise3x3x3:
+								{
+									// Cellular noise, returning F1 and F2 in a float2.
+									// 3x3x3 search region for good F2 everywhere, but a lot
+									// slower than the 2x2x2 version.
+									// The code below is a bit scary even to its author,
+									// but it has at least half decent performance on a
+									// math.modern GPU. In any case, it beats any software
+									// implementation of Worley noise hands down.
+									value2 = noise.cellular(new float3(x,y,z));
+
+
+									//	color = new Color(value2.x, value2.x, value2.x);
+									color = new Color(
+										valueInterpertation.ColorInterpertationA2D.x ? value2.x : valueInterpertation.ColorInterpertationB2D.x ? value2.y : 0,
+										valueInterpertation.ColorInterpertationA2D.y ? value2.x : valueInterpertation.ColorInterpertationB2D.y ? value2.y : 0,
+										valueInterpertation.ColorInterpertationA2D.z ? value2.x : valueInterpertation.ColorInterpertationB2D.z ? value2.y : 0
+									);
+									break;
+								}
+
+
+						}
 					}
 				}
 				else if (dimension == 4)
 				{
-					switch (type)
+					for (int k = minDimensions.z; k < dimensions.z; k++)
 					{
-						case NoiseClass.NoiseType.PerlinNoise4x4x4x4:
-							Debug.LogWarning("This Scene doesnto currently support 4D inputs because idk what they are");
-							break;
-						case NoiseClass.NoiseType.ClassicPerlinNoise4x4x4x4:
-							Debug.LogWarning("This Scene doesnto currently support 4D inputs because idk what they are");
-							break;
-						case NoiseClass.NoiseType.SimplexNoise4x4x4x4:
+						z = (float)k / dimensions.z * Scale;
+						for (int l = minDimensions.w; l < dimensions.w; l++)
+						{
+							w = (float)l / dimensions.w * Scale;
+							switch (type)
 							{
-
-								Debug.LogWarning("This Scene doesnto currently support 4D inputs because idk what they are");
-								break;
+								case NoiseClass.NoiseType.PerlinNoise4x4x4x4:
+							//		Debug.LogWarning("This Scene doesnto currently support 4D inputs because idk what they are");
+									value = noise.pnoise(new float4(x,y,z,w), input);
+									color = new Color(valueInterpertation.ColorInterpertation1D.x ? value : 0, valueInterpertation.ColorInterpertation1D.y ? value : 0, valueInterpertation.ColorInterpertation1D.z ? value : 0);
+									break;
+								case NoiseClass.NoiseType.ClassicPerlinNoise4x4x4x4:
+							//		Debug.LogWarning("This Scene doesnto currently support 4D inputs because idk what they are");
+									value = noise.cnoise(new float4(x, y, z, w));
+									color = new Color(valueInterpertation.ColorInterpertation1D.x ? value : 0, valueInterpertation.ColorInterpertation1D.y ? value : 0, valueInterpertation.ColorInterpertation1D.z ? value : 0);
+									break;
+								case NoiseClass.NoiseType.SimplexNoise4x4x4x4:
+									{
+							//			Debug.LogWarning("This Scene doesnto currently support 4D inputs because idk what they are");
+										value = noise.snoise(new float4(x, y, z, w));
+										color = new Color(valueInterpertation.ColorInterpertation1D.x ? value : 0, valueInterpertation.ColorInterpertation1D.y ? value : 0, valueInterpertation.ColorInterpertation1D.z ? value : 0);
+										break;
+									}
 							}
+						}
 					}
 				}
 				else
@@ -657,5 +950,70 @@ public static class NoiseClass
 		return texture;
 	}
 
+}
+
+public struct ValueInterpertation
+{
+	// interpertation values (only works in 1D, 2D, and 3D return values)
+
+	// 1D options
+
+		// chooses which rgb value to be set to the noise value
+		public bool3 ColorInterpertation1D;
+	// 2D options
+		// chooses which rgb value to be set to the noise value x
+		public bool3 ColorInterpertationA2D;
+		// chooses which rgb value to be set to the noise value y
+		public bool3 ColorInterpertationB2D;
+	// 3D options
+		// chooses which rgb value to be set to the noise value x
+		public bool3 ColorInterpertationA3D;
+		// chooses which rgb value to be set to the noise value y
+		public bool3 ColorInterpertationB3D;
+		// chooses which rgb value to be set to the noise value z
+		public bool3 ColorInterpertationC3D;
+
+	public int ReturnDimension(NoiseClass.NoiseType type)
+	{
+		switch (type)
+		{
+			case NoiseClass.NoiseType.SimplexNoise4x4x4x4:
+			case NoiseClass.NoiseType.PerlinNoise3x3x3:
+			case NoiseClass.NoiseType.ClassicPerlinNoise3x3x3:
+			case NoiseClass.NoiseType.SimplexNoise3x3x3:
+			case NoiseClass.NoiseType.SimplexNoise3x3x3Gradient:
+			case NoiseClass.NoiseType.PerlinNoise:
+			case NoiseClass.NoiseType.SRNoise2D:
+			case NoiseClass.NoiseType.SRNoise:
+			case NoiseClass.NoiseType.ClassicPerlinNoise:
+			case NoiseClass.NoiseType.SimplexNoise:
+			case NoiseClass.NoiseType.ClassicPerlinNoise4x4x4x4:
+			case NoiseClass.NoiseType.PerlinNoise4x4x4x4:
+				return 1;
+			case NoiseClass.NoiseType.CellularNoise2x2x2:
+			case NoiseClass.NoiseType.CellularNoise3x3x3:
+			case NoiseClass.NoiseType.CellularNoise:
+			case NoiseClass.NoiseType.CellularNoise2x2:
+				return 2;
+			case NoiseClass.NoiseType.SRDNoise:
+			case NoiseClass.NoiseType.SRDNoise2D:
+				return 3;
+
+		}
+		return 0;
+	}
+	public override bool Equals(object obj)
+	{
+		ValueInterpertation vi = (ValueInterpertation)obj;
+		return (
+			ColorInterpertation1D.Equals(vi.ColorInterpertation1D)
+			&& ColorInterpertationA2D.Equals(vi.ColorInterpertationA2D)
+			&& ColorInterpertationB2D.Equals(vi.ColorInterpertationB2D)
+			&& ColorInterpertationA3D.Equals(vi.ColorInterpertationA3D)
+			&& ColorInterpertationB3D.Equals(vi.ColorInterpertationB3D)
+			&& ColorInterpertationC3D.Equals(vi.ColorInterpertationC3D)
+			
+		);
+	}
 }
 
