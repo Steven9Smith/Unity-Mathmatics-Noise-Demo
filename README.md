@@ -14,5 +14,12 @@ With the source of the functions here:
 
 https://github.com/stegu/webgl-noise
 
+Here are some cool images i made, I plan on making a video in the future on how to use it.
 
+![GitHub Logo](/images/SRDNoise/Test1.png)
 
+![GitHub Logo](/images/SRDNoise/Test2.png)
+
+![GitHub Logo](/images/SRDNoise/Test3.png)
+
+![GitHub Logo](/images/SRDNoise/Test4.png)
