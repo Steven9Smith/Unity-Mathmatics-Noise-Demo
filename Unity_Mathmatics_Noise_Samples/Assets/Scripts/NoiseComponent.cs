@@ -9,6 +9,10 @@ using System.IO;
 
 public class NoiseComponent : MonoBehaviour
 {
+	// Visual Interpertation
+
+
+
 	// Noise type
 	public NoiseClass.NoiseType NoiseType = NoiseClass.NoiseType.CellularNoise;
 	// used to determine dimension of the current noise type
@@ -31,12 +35,12 @@ public class NoiseComponent : MonoBehaviour
 
 	// Holds the Min and Max Demensions of the texture or Interpertation Method
 
-	public Vector2Int MinMaxWidth = new Vector2Int(1,64);
-	public Vector2Int MinMaxHeight = new Vector2Int(1,64);
+	public Vector2Int MinMaxWidth = new Vector2Int(0,64);
+	public Vector2Int MinMaxHeight = new Vector2Int(0,64);
 	// This is used in 3D noise
-	public Vector2Int MinMaxLength = new Vector2Int(1, 64);
+	public Vector2Int MinMaxLength = new Vector2Int(0, 64);
 	// This is used for 4D noise. Depth is not its true name, its just a placeholder name
-	public Vector2Int MinMaxDepth = new Vector2Int(1, 64);
+	public Vector2Int MinMaxDepth = new Vector2Int(0, 64);
 
 	public int width = 64, height = 64,length = 1,depth = 1;
 
@@ -51,7 +55,7 @@ public class NoiseComponent : MonoBehaviour
 	private NoiseClass.NoiseType OldNoiseType;
 	private ValueInterpertation oldValueInterpertation;
 
-	private MeshRenderer mr;
+	public MeshRenderer mr;
 
 	// Start is called before the first frame update
 	void Start()
@@ -104,6 +108,7 @@ public class NoiseEditor : Editor
 	private bool MaterialAttributesFoldout = true;
 	private bool GradientsAndRotationValuesFoldout = true;
 
+
 	private bool ValueInterpertation = true;
 
 	private bool ValueInterpertation2DX = true;
@@ -117,8 +122,18 @@ public class NoiseEditor : Editor
 	private int ValueInterpertationDimension = 1;
 
 
-	private bool3 xyz1D;
+	// Save Noise Variables
+	private string filenameSave = "";
+	private bool SaveAsHeightMap = false;
+	private bool SaveFoldout = true;
+	// Load Noise variables
+	private string filenameLoad = "";
+	private bool LoadFoldout = true;
 
+	private const int BUTTON_WIDTH = 200;
+	private const int BUTTON_HEIGHT = 20;
+
+	
 	public override void OnInspectorGUI()
 	{
 		//	DrawDefaultInspector();
@@ -139,7 +154,7 @@ public class NoiseEditor : Editor
 		else
 			nc.Is4D = false;
 		EditorGUILayout.Space();
-		ValueInterpertation = EditorGUILayout.Foldout(ValueInterpertation, "Value Interpitation",EditorStyles.boldFont);
+		ValueInterpertation = EditorGUILayout.Foldout(ValueInterpertation, "Value Interpitation");
 		if (ValueInterpertation)
 		{
 			ValueInterpertationDimension = nc.ValueInterpertation.ReturnDimension(nc.NoiseType);	
@@ -309,55 +324,132 @@ public class NoiseEditor : Editor
 
 		EditorGUILayout.Space();
 
-
-
-		EditorGUILayout.LabelField("Gradients and Rotation Values", EditorStyles.boldLabel);
-		//Update MinMaxValue is UseScaleAsMax is true
-		if (nc.UseScaleAsMax)
-			nc.MinMaxValue = new float2(0, nc.Scale);
-		else
-			nc.MinMaxValue = EditorGUILayout.Vector2Field("MinMax Value", nc.MinMaxValue);
-		
-		
-
-		switch (nc.NoiseType)
+		// Gradients and Rotation foldout
+		GradientsAndRotationValuesFoldout = EditorGUILayout.Foldout(GradientsAndRotationValuesFoldout,"Gradients and Rotations");
+		if (GradientsAndRotationValuesFoldout)
 		{
-			case NoiseClass.NoiseType.PerlinNoise:
-				DisplaySliders(new string[] { "Explicit Period A", "Explicit Peroid B" });
-				break;
-			
-			case NoiseClass.NoiseType.SRDNoise2D:
-			case NoiseClass.NoiseType.SRNoise2D:
+			//Update MinMaxValue is UseScaleAsMax is true
+			if (nc.UseScaleAsMax)
+				nc.MinMaxValue = new float2(0, nc.Scale);
+			else
+				nc.MinMaxValue = EditorGUILayout.Vector2Field("MinMax Value", nc.MinMaxValue);
 
-				DisplaySliders(new string[] { "Gradient Rotation" });
-				break;
-			// these are currently not programmed
-			case NoiseClass.NoiseType.PerlinNoise3x3x3:
-				DisplaySliders(new string[] { "Period X","Period Y","Period Z"});
-				break;
-			case NoiseClass.NoiseType.PerlinNoise4x4x4x4:
+			GradientsAndRotationValuesFoldout = EditorGUILayout.Foldout(GradientsAndRotationValuesFoldout, "Fradients and Rotation");
 
-				DisplaySliders(new string[] { "Period X", "Period Y", "Period Z", "Period W"});
-				break;
-			case NoiseClass.NoiseType.CellularNoise2x2x2:
-			case NoiseClass.NoiseType.CellularNoise3x3x3:
-			case NoiseClass.NoiseType.ClassicPerlinNoise3x3x3:
-			case NoiseClass.NoiseType.SimplexNoise3x3x3:
-			case NoiseClass.NoiseType.ClassicPerlinNoise4x4x4x4:
-			case NoiseClass.NoiseType.SimplexNoise4x4x4x4:
-			case NoiseClass.NoiseType.CellularNoise2x2:
-			// these take no extra input from the user (feel free to mess with the scale and size though)
-			case NoiseClass.NoiseType.CellularNoise:
-			case NoiseClass.NoiseType.ClassicPerlinNoise:
-			case NoiseClass.NoiseType.SimplexNoise:
-			case NoiseClass.NoiseType.SRNoise:
-			case NoiseClass.NoiseType.SRDNoise:
-				DisplaySliders(new string[] { });
-				break;
-			default:
-				break;
+			switch (nc.NoiseType)
+			{
+				case NoiseClass.NoiseType.PerlinNoise:
+					DisplaySliders(new string[] { "Explicit Period A", "Explicit Peroid B" });
+					break;
+
+				case NoiseClass.NoiseType.SRDNoise2D:
+				case NoiseClass.NoiseType.SRNoise2D:
+
+					DisplaySliders(new string[] { "Gradient Rotation" });
+					break;
+				// these are currently not programmed
+				case NoiseClass.NoiseType.PerlinNoise3x3x3:
+					DisplaySliders(new string[] { "Period X", "Period Y", "Period Z" });
+					break;
+				case NoiseClass.NoiseType.PerlinNoise4x4x4x4:
+
+					DisplaySliders(new string[] { "Period X", "Period Y", "Period Z", "Period W" });
+					break;
+				case NoiseClass.NoiseType.CellularNoise2x2x2:
+				case NoiseClass.NoiseType.CellularNoise3x3x3:
+				case NoiseClass.NoiseType.ClassicPerlinNoise3x3x3:
+				case NoiseClass.NoiseType.SimplexNoise3x3x3:
+				case NoiseClass.NoiseType.ClassicPerlinNoise4x4x4x4:
+				case NoiseClass.NoiseType.SimplexNoise4x4x4x4:
+				case NoiseClass.NoiseType.CellularNoise2x2:
+				// these take no extra input from the user (feel free to mess with the scale and size though)
+				case NoiseClass.NoiseType.CellularNoise:
+				case NoiseClass.NoiseType.ClassicPerlinNoise:
+				case NoiseClass.NoiseType.SimplexNoise:
+				case NoiseClass.NoiseType.SRNoise:
+				case NoiseClass.NoiseType.SRDNoise:
+					DisplaySliders(new string[] { });
+					break;
+				default:
+					break;
+			}
 		}
 
+		EditorGUILayout.Space();
+
+		// Noise Save foldout
+		SaveFoldout = EditorGUILayout.Foldout(SaveFoldout, "Save Noise");
+		if (SaveFoldout)
+		{
+			filenameSave = EditorGUILayout.TextField("filename",filenameSave);
+			SaveAsHeightMap = EditorGUILayout.Toggle("Save As Height Map",SaveAsHeightMap);
+			if (GUILayout.Button("Save Noise Profile",GUILayout.Width(BUTTON_WIDTH),GUILayout.Height(BUTTON_HEIGHT)))
+			{
+				if (filenameSave == "")
+					filenameSave = "_blank";
+				if (!SaveAsHeightMap)
+					Core.Procedural.NoiseSaveDataClass.SaveNoise(nc.NoiseType, filenameSave, nc.mr.material, new float4(nc.ValueA, nc.ValueB, nc.ValueC, nc.ValueD));
+				else
+					Core.Procedural.NoiseSaveDataClass.SaveHeightMap(nc.NoiseType, filenameSave, nc.mr.material);
+			}
+			if(GUILayout.Button("Export Noise Profile", GUILayout.Width(BUTTON_WIDTH), GUILayout.Height(BUTTON_HEIGHT)))
+			{
+				if (filenameSave == "")
+					filenameSave = "_blank";
+				Core.Procedural.NoiseSaveDataClass.ExportNoiseProfile(nc.NoiseType, filenameSave, nc.mr.material, new float4(nc.ValueA, nc.ValueB, nc.ValueC, nc.ValueD));
+			}
+		}
+		// Noise Load foldout
+		LoadFoldout = EditorGUILayout.Foldout(LoadFoldout, "Load Noise");
+		if (LoadFoldout)
+		{
+			filenameLoad = EditorGUILayout.TextField("file path",filenameLoad);
+			if(GUILayout.Button("Load Noise Profile/Heightmap", GUILayout.Width(BUTTON_WIDTH), GUILayout.Height(BUTTON_HEIGHT)))
+			{
+				if (filenameLoad == "")
+					filenameLoad = "_blank";
+				string[] path_split = filenameLoad.Split('/');
+				string[] filename_split = path_split[path_split.Length - 1].Split('.');
+				if (filename_split.Length > 1)
+				{
+					if(filename_split[1] == "map")
+					{
+						Debug.LogWarning("Note: loading a height map will not change noise type and other non-color values.");
+						float[][] heights;
+						if (Core.Procedural.NoiseSaveDataClass.LoadHeightMap(filenameLoad, out heights)) {
+							Texture2D texture;
+							if (Core.Procedural.NoiseSaveDataClass.HeightMapToTexture2D(heights,out texture))
+							{
+								nc.mr.material.mainTexture = texture;
+								Debug.Log("Successfuly loaded the heightmap");
+							}
+						}
+					}
+					else
+					{
+						Debug.Log("attempting to load noise profile");
+						//assumes .dat
+						Texture2D texture2D;
+						float4 values;
+						NoiseClass.NoiseType type;
+						if (Core.Procedural.NoiseSaveDataClass.LoadNoise(filenameLoad, out texture2D, out values, out type))
+						{
+							nc.NoiseType = type;
+							nc.mr.material.mainTexture = texture2D;
+							nc.ValueA = values.x;
+							nc.ValueB = values.y;
+							nc.ValueC = values.z;
+							nc.ValueD = values.w;
+							Debug.Log("Successfully Loaded the Noise profile!");
+						}
+					}
+
+				}
+				else
+					Debug.LogWarning("Cannot load a file without an extension");
+			}
+		}
+	
 	}
 	/// <summary>
 	/// This is responsible for displaying the sliders on certain noises
@@ -407,6 +499,14 @@ public static class NoiseClass
 				   new float4(-1, 1, 0, 1), new float4(-1, 1, 0, -1), new float4(-1, -1, 0, 1), new float4(-1, -1, 0, -1),
 				   new float4(1, 1, 1, 0), new float4(1, 1, -1, 0), new float4(1, -1, 1, 0), new float4(1, -1, -1, 0),
 				   new float4(-1, 1, 1, 0), new float4(-1, 1, -1, 0), new float4(-1, -1, 1, 0), new float4(-1, -1, -1, 0)};
+
+	public enum VisualInterpertation
+	{
+		Texture,
+		Shape3D,
+		Terrain,
+		Map3D
+	}
 
 	public enum NoiseType
 	{
