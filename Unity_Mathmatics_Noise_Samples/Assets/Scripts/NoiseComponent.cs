@@ -153,6 +153,8 @@ public class NoiseEditor : Editor
 			nc.Is4D = NoiseClass.TypeIs4D(nc.NoiseType);
 		else
 			nc.Is4D = false;
+		
+		
 		EditorGUILayout.Space();
 		ValueInterpertation = EditorGUILayout.Foldout(ValueInterpertation, "Value Interpitation");
 		if (ValueInterpertation)
@@ -289,6 +291,12 @@ public class NoiseEditor : Editor
 			//		Scale
 			nc.UseScaleAsMax = EditorGUILayout.Toggle("Use Scale As Size Limit", nc.UseScaleAsMax);
 			nc.Scale = EditorGUILayout.FloatField("Scale", nc.Scale);
+			//Update MinMaxValue is UseScaleAsMax is true
+			if (nc.UseScaleAsMax)
+				nc.MinMaxValue = new float2(0, nc.Scale);
+			else
+				nc.MinMaxValue = EditorGUILayout.Vector2Field("MinMax Value", nc.MinMaxValue);
+
 			//		Width
 			nc.MinMaxWidth = EditorGUILayout.Vector2IntField("Min Max Width", nc.MinMaxWidth);
 			if (nc.MinMaxWidth.x > nc.MinMaxWidth.y)
@@ -328,13 +336,9 @@ public class NoiseEditor : Editor
 		GradientsAndRotationValuesFoldout = EditorGUILayout.Foldout(GradientsAndRotationValuesFoldout,"Gradients and Rotations");
 		if (GradientsAndRotationValuesFoldout)
 		{
-			//Update MinMaxValue is UseScaleAsMax is true
-			if (nc.UseScaleAsMax)
-				nc.MinMaxValue = new float2(0, nc.Scale);
-			else
-				nc.MinMaxValue = EditorGUILayout.Vector2Field("MinMax Value", nc.MinMaxValue);
+			
 
-			GradientsAndRotationValuesFoldout = EditorGUILayout.Foldout(GradientsAndRotationValuesFoldout, "Fradients and Rotation");
+		//	GradientsAndRotationValuesFoldout = EditorGUILayout.Foldout(GradientsAndRotationValuesFoldout, "Fradients and Rotation");
 
 			switch (nc.NoiseType)
 			{
