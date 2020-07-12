@@ -81,9 +81,9 @@ When a new **Noise Profile** tab is created you get a bunch ot options and setti
 
 ## Value Interpertation:
 
- **Value Interpertation** refers to the amount of values returned by a noise function. 
- **1D** = 1 float value was returned
- **2D** = 2 float values returned (usually the 1st derivative)
+ **Value Interpertation** refers to the amount of values returned by a noise function.\ 
+ **1D** = 1 float value was returned\
+ **2D** = 2 float values returned (usually the 1st derivative)\
  **3D** = 3 float values returnf (usually the 1st and 2d derivative)[Check the links above for more information]
 
  With **Value Interpertation** you can choose which *RGB* value each return value affects.
