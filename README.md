@@ -20,11 +20,6 @@ https://github.com/Unity-Technologies/Unity.Mathematics/tree/master/src/Unity.Ma
 
 https://github.com/stegu/webgl-noise
 
-Here are some cool images i made, I plan on making a video in the future on how to use it.
-
-![TestImage](/images/SRDNoise/TestImages.png)
-
-
 I made this for a game I'm working on and decided to share my work.
 
 I hope you enjoy it and feel free to [donate](paypal.me/9ssmith9) if you want by clicking the donate link. 
