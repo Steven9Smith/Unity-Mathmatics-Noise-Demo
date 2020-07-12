@@ -29,6 +29,8 @@ I made this for a game I'm working on and decided to share my work.
 
 I hope you enjoy it and feel free to [donate](paypal.me/9ssmith9) if you want by clicking the donate link. 
 
+Here is a [discord link](https://discord.gg/M9buruM) if you have any comment or needs some help :)
+
 ### Tutorial
 **Startup**
 
