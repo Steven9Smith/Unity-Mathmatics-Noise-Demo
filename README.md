@@ -2,6 +2,8 @@
  
 This Demo Project was made to help create a visual aid on the Unity.Mathmatics noise functions in the Unity.Mathmatics package.
 
+This works on multiple versions of Unity since it is using basic Quads and C# code
+
 Users can modify various attributes to change the out of various noise functions.
 
 Currently 3D and 4D methods are not visualized but are planned for a future release.
@@ -32,7 +34,7 @@ I hope you enjoy it and feel free to [donate](paypal.me/9ssmith9) if you want by
 
 when you start the demo you'll see the noise component script display a couple of options: **Visual Interpertation**, **Noise Profile Tab Buttons**, **Save Noise Profile(s)**, and **Load Noise Profile(s)**. 
 
-![001](/images/logo.png)
+![001](https://raw.githubusercontent.com/Steven9Smith/Unity-Mathmatics-Noise-Samples/master/images/Tutorialv2/001.png)
 
 ## What is a **Noise Profile**?
 
@@ -47,10 +49,14 @@ The *Final Noise Profile* will refer to the final rendering of all **Noise Profi
 
 The left Quad displays the *Final Noise Profile* and the right Quad displays the active tab's **Noise Profile**.
 
+![002](https://raw.githubusercontent.com/Steven9Smith/Unity-Mathmatics-Noise-Samples/master/images/Tutorialv2/002.png)
+
 ## Noise Profile Tab Buttons:
 
 The **Noise Profile Tab Button**s are for *Copying*, *Creating*, and *Deleting* **Nosie Profiles**. Hitting **Add New Noise Profile Tab** creates a new tab and hitting the **Delete Current Noise Profile Tab** deletes the active tab. An active **Noise Profil**e refers the the **Noise Profile** corresponding the currently
 active tab.
+
+![003](https://raw.githubusercontent.com/Steven9Smith/Unity-Mathmatics-Noise-Samples/master/images/Tutorialv2/003.png)
 	
 ## Noise Profile Tabs:
 	
@@ -70,6 +76,8 @@ When a new **Noise Profile** tab is created you get a bunch ot options and setti
 
  ### Disabled: 
    allows you to make edtis to the active Noise Profile without affecting anything
+ 
+![004](https://raw.githubusercontent.com/Steven9Smith/Unity-Mathmatics-Noise-Samples/master/images/Tutorialv2/004.png)
 
 ## Value Interpertation:
 
@@ -87,6 +95,8 @@ When a new **Noise Profile** tab is created you get a bunch ot options and setti
  Once you select the **Use Custom Colors** checkbox another checkbox named **Use Gradient Value** will appear.
 
  If you toggle the **Use Gradient Value** checkbox to true a new set of options appear called the **MegaGradient**
+ 
+![005](https://raw.githubusercontent.com/Steven9Smith/Unity-Mathmatics-Noise-Samples/master/images/Tutorialv2/005.png)
 
  ## MegaGradient:
 
@@ -117,6 +127,8 @@ When a new **Noise Profile** tab is created you get a bunch ot options and setti
 
   The gradients in the **MegaGradient** can be edited just like any normal gradient expect the gradient mode will be 
   overrided by the **Gradient Mode** dropdown.
+  
+![006](https://raw.githubusercontent.com/Steven9Smith/Unity-Mathmatics-Noise-Samples/master/images/Tutorialv2/006.png)
 
 ## Material Attributes:
 
@@ -126,7 +138,9 @@ When a new **Noise Profile** tab is created you get a bunch ot options and setti
   this acts as a zoom in/out. 
 
  ### Use Scale As Size Limit:	
-  this sets extra attributes Min and Max possible values to the value of scale. Since most function won't do anything if you go beyond the scale number value this is set to true by default.
+  this sets extra attributes Min and Max possible **Gradients and Rotations** values to the value of scale. Since most function won't do anything if you go beyond the scale number value this is set to true by default. If this is set to false you can set the min and max by setting the **Min Max Value** option values.
+
+![007](https://raw.githubusercontent.com/Steven9Smith/Unity-Mathmatics-Noise-Samples/master/images/Tutorialv2/007.png)
 
  ### Crop Section: 
   the crop section allows you to crop the active **Noise Profile** making the cropped section the only modified section of the **Noise Profile**.
@@ -143,6 +157,8 @@ When a new **Noise Profile** tab is created you get a bunch ot options and setti
   ### Offset Y: 
    offsets the crop area on the Y-axis.
 
+![008](https://raw.githubusercontent.com/Steven9Smith/Unity-Mathmatics-Noise-Samples/master/images/Tutorialv2/008.png)
+
  ### Min Max Width: 
   set the min and max width of the texture. *this affects noise calculations.
 
@@ -154,6 +170,8 @@ When a new **Noise Profile** tab is created you get a bunch ot options and setti
 
  ### Height: 
   set the actual height of the texture. *this affects noise calculations.
+  
+![009](https://raw.githubusercontent.com/Steven9Smith/Unity-Mathmatics-Noise-Samples/master/images/Tutorialv2/009.png)
 
  These only appear for certain noise profiles and can affect the speed of calculates is the numbers are set to high.
  **NOTE: depth and length are placeholder names due to the calculations involving the 3rd and 4th dimensions (I might be wrong about that)**
@@ -174,37 +192,42 @@ When a new **Noise Profile** tab is created you get a bunch ot options and setti
 
  These are the extra varibles added to the noise calulatations and are pretty self explanitory. if you do want 
  more information i siggest reading the article at the top of the page.
+ 
+![010](https://raw.githubusercontent.com/Steven9Smith/Unity-Mathmatics-Noise-Samples/master/images/Tutorialv2/010.png)
 		
 Now that we go **Value Interpertation** out of the way we can now talk about **Visual Interpertation**. **Visual Interpertation** is what the *Final Noise Profile* & *Maps* are interpered as. You are given 3 options currently which are described below.
+
 
  ### Texture: 
   Allows you to see the *Final Noise Profile* as a <code>Texture2D</code> image on a <codeQuad</code>.
 
- ### Shape 3D: 
+ #### Shape 3D: 
   Allows you to see the *Final Noise Profile* as a <code>Texture2D</code> on one of Unity's default shapes.
 
- ### Scale: 
+ #### Scale: 
   Set the scale of the shape. (it won't be visible if all 3 value are 0)
 
  ### Shape: 
   Choose what shape you want to look at.
 
- ### Terrain: 
+ #### Terrain: 
   This allows you to see the *Final Noise Profile* as a terrain.
 
- ### Scale: 
+ #### Scale: 
   Set the scale of the shape. (it won't be visible if all 3 value are 0)
 
- ### Max height: 
+ #### Max height: 
   This allows you set the maximum y value a point can have when the "height" of the *Final Noise Profile* is at 1f.
 
- ### Display Noise Material On Terrain: 
+ #### Display Noise Material On Terrain: 
   This sets the texture of the terrian to a usually ugly repeating texture of the *Final Noise Profile*.
 
- ### Use Color Heights on Terrain: 
+ #### Use Color Heights on Terrain: 
   Remeber the Map Mode? This is where the maps will be used and displayed based on their height values.
 
 ## Noise Arithmetic:
+
+![011](https://raw.githubusercontent.com/Steven9Smith/Unity-Mathmatics-Noise-Samples/master/images/Tutorialv2/011.png)
 	
  *Arithmetic* is a feature that only appear when you create more than 1 **Noise Profile**. The *Starting Texture* refers to the the texture that 
  the arithmetic will be execute on. You can set 1 **Noise Profile** to be the starting texture by toggling the **Use As Arithmetic Starting Texture** 
@@ -244,7 +267,7 @@ Now that we go **Value Interpertation** out of the way we can now talk about **V
  This saves all the N**oise Profiles**, heightmaps, and images into the <code>**Application**.persistantData</code> folder on your computer under "NoiseSaves", the **NoiseType**, and given filename. (most likely in your %AppData% folder)
  **NOTE: if you're saving more than one Noise Profile then your NoiseType will be Mixed.**
 
-## Save Noise Profile(s):
+## Load Noise Profile(s):
  This loads all the **Noise Profiles** and thier data to the demo.
  **NOTE: if you change the names of the files or folders the Demo will not be able to load your data properly.**
  **NOTE: you must provide the root folder of the where the data is stored.**
