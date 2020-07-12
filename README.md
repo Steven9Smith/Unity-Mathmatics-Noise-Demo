@@ -1,4 +1,4 @@
-# Unity-Mathmatics-Noise-Samples
+# Unity-Mathmatics-Noise-Demo
  
 This Demo Project was made to help create a visual aid on the Unity.Mathmatics noise functions in the Unity.Mathmatics package.
 
