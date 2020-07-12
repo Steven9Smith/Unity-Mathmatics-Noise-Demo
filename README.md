@@ -81,16 +81,15 @@ When a new **Noise Profile** tab is created you get a bunch ot options and setti
 
 ## Value Interpertation:
 
- **Value Interpertation** refers to the amount of values returned by a noise function.\ 
- **1D** = 1 float value was returned\
+ **Value Interpertation** refers to the amount of values returned by a noise function. 
+ 
+ **1D** = 1 float value was returned.\
  **2D** = 2 float values returned (usually the 1st derivative)\
  **3D** = 3 float values returnf (usually the 1st and 2d derivative)[Check the links above for more information]
 
  With **Value Interpertation** you can choose which *RGB* value each return value affects.
 
- You can also choose to replace the return value's resulting color with your own by toggling the **Custom Color**
- checkbox to true. After you toggle that you can choose to add fixed colors that only affect return colors 
- with a matchinig or greater "height" value. (height refers to the return value with a range of 0-1)
+ You can also choose to replace the return value's resulting color with your own by toggling the **Custom Color** checkbox to true. After you toggle that you can choose to add fixed colors that only affect return colors with a matchinig or greater "height" value. (height refers to the return value with a range of 0-1)
 
  Once you select the **Use Custom Colors** checkbox another checkbox named **Use Gradient Value** will appear.
 
@@ -100,11 +99,7 @@ When a new **Noise Profile** tab is created you get a bunch ot options and setti
 
  ## MegaGradient:
 
-  By default a gradient has a maximum of 8 [AlphaKeys](https://docs.unity3d.com/ScriptReference/GradientAlphaKey.html) and 8 [ColorKeys](https://docs.unity3d.com/ScriptReference/GradientColorKey.html) so you can only have 8 colors per
-  gradient. What the MegaGradient does is completly destroys that rule and allows you to have <code>n</code>
-  gradients or infinite gradients. The MegaGradient itself emulates a range from 0-1f no matter how many gradients
-  you use. If you were load the Extreme_test_1788_Colors eaxample you can see that there are 224 gradients with
-  1788 colors that represent a heightmap with a range between 0-1f. This allows for high fidelity customization.
+  By default a gradient has a maximum of 8 [AlphaKeys](https://docs.unity3d.com/ScriptReference/GradientAlphaKey.html) and 8 [ColorKeys](https://docs.unity3d.com/ScriptReference/GradientColorKey.html) so you can only have 8 colors per gradient. What the MegaGradient does is completly destroys that rule and allows you to have <code>n</code> gradients or infinite gradients. The MegaGradient itself emulates a range from 0-1f no matter how many gradients you use. If you were load the Extreme_test_1788_Colors eaxample you can see that there are 224 gradients with 1788 colors that represent a heightmap with a range between 0-1f. This allows for high fidelity customization.
 
   ### Enable Gradient: 
    this toggles whether or not you want the gradients to affect the active **Noise Profile**.
